@@ -11,21 +11,26 @@ import java.util.*;
  * A level to be played.
  */
 public final class Level {
-    private final Map<Position, Box> boxes;
-    private final Map<Position, Goal> goals;
-    private final Map<Position, Wall> walls;
+    private final PositionMap<Box> boxes;
+    private final PositionMap<Goal> goals;
+    private final PositionMap<Wall> walls;
     private final Dimensions dimensions;
 
-    public Map<Position, Box> getBoxes() {
+    public PositionMap<Box> getBoxes() {
         return boxes;
     }
 
-    public Map<Position, Goal> getGoals() {
+    public PositionMap<Goal> getGoals() {
         return goals;
     }
 
-    public Map<Position, Wall> getWalls() {
+    public PositionMap<Wall> getWalls() {
         return walls;
+    }
+
+
+    public Dimensions getDimensions() {
+        return dimensions;
     }
 
     @Override
@@ -52,50 +57,80 @@ public final class Level {
         return result;
     }
 
-    public Dimensions getDimensions() {
-        return dimensions;
-    }
-
-    private Level(Map<Position, Box> boxes, Map<Position, Goal> goals, Map<Position, Wall> walls, Dimensions dimensions) {
+    private Level(PositionMap<Box> boxes, PositionMap<Goal> goals, PositionMap<Wall> walls, Dimensions dimensions) {
         this.boxes = Preconditions.checkNotNull(boxes);
         this.goals = Preconditions.checkNotNull(goals);
         this.walls = Preconditions.checkNotNull(walls);
         this.dimensions = Preconditions.checkNotNull(dimensions);
     }
 
-    public static Level create(Map<Position, Box> boxes, Map<Position, Goal> goals, Map<Position, Wall> walls, Dimensions dimensions) {
-        return new Level(boxes, goals, walls, dimensions);
+    public static class Builder {
+        private final PositionMap.Builder<Box> boxBuilder = new PositionMap.Builder<>();
+        private final PositionMap.Builder<Goal> goalBuilder = new PositionMap.Builder<>();
+        private final PositionMap.Builder<Wall> wallBuilder = new PositionMap.Builder<>();
+        private final Dimensions dimensions;
+
+        public Builder(Dimensions dimensions) {
+            this.dimensions = dimensions;
+        }
+
+        public Builder putBox(Position p, Box b) {
+            boxBuilder.putAt(p, b);
+            return this;
+        }
+
+        public Builder putBox(int row, int col, Box b) {
+            boxBuilder.putAt(row, col, b);
+            return this;
+        }
+
+        public Builder putGoal(Position p, Goal g) {
+            goalBuilder.putAt(p, g);
+            return this;
+        }
+
+        public Builder putGoal(int row, int col, Goal g) {
+            goalBuilder.putAt(row, col, g);
+            return this;
+        }
+
+        public Builder putWall(Position p, Wall w) {
+            wallBuilder.putAt(p, w);
+            return this;
+        }
+
+        public Builder putWall(int row, int col, Wall w) {
+            wallBuilder.putAt(row, col, w);
+            return this;
+        }
+
+        public Level build() {
+            return new Level(boxBuilder.build(), goalBuilder.build(), wallBuilder.build(), dimensions);
+        }
     }
 
     public TransitionLevel getTransitions(Direction dir) {
-        Queue<Position> pending = Lists.newLinkedList(boxes.keySet());
-        Set<Position> pendingSet = Sets.newHashSet(boxes.keySet());
-        Map<Position, Transitioning<Box, Box.Transition>> bt = new HashMap<>();
-        Map<Position, Transitioning<Goal, Goal.Transition>> gt = new HashMap<>();
-        Map<Position, Transitioning<Wall, Wall.Transition>> wt = new HashMap<>();
-        for (Map.Entry<Position, Box> box : boxes.entrySet()) {
-            bt.put(box.getKey(), Transitioning.create(box.getValue(), new HashSet<Box.Transition>()));
-        }
-        for (Map.Entry<Position, Goal> goal : goals.entrySet()) {
-            gt.put(goal.getKey(), Transitioning.create(goal.getValue(), new HashSet<Goal.Transition>()));
-        }
-        for (Map.Entry<Position, Wall> wall : walls.entrySet()) {
-            wt.put(wall.getKey(), Transitioning.create(wall.getValue(), new HashSet<Wall.Transition>()));
-        }
+        Queue<Position> pending = Lists.newLinkedList(boxes.getPositions());
+        Set<Position> pendingSet = Sets.newHashSet(boxes.getPositions());
+
+        TransitionLevel transitionLevel = TransitionLevel.fromLevel(this);
+        PositionMap<Transitioning<Box, Box.Transition>> bt = transitionLevel.getBoxes();
+        PositionMap<Transitioning<Goal, Goal.Transition>> gt = transitionLevel.getGoals();
+        
         while (!pending.isEmpty()) {
             Position p = pending.peek();
-            Box b = boxes.get(p);
+            Box b = boxes.getAt(p);
             Position np = p.move(dir);
 
             // Hitting a wall
-            if (walls.containsKey(np)) {
-                bt.get(p).getTransitions().add(Box.Transition.STAY);
+            if (walls.isAnythingAt(np)) {
+                bt.getAt(p).getTransitions().add(Box.Transition.STAY);
                 pendingSet.remove(pending.poll());
             }
 
             // Going out of bounds
             else if (!dimensions.isInBounds(np)) {
-                bt.get(p).getTransitions().add(Box.Transition.STAY);
+                bt.getAt(p).getTransitions().add(Box.Transition.STAY);
                 pendingSet.remove(pending.poll());
             }
 
@@ -105,23 +140,24 @@ public final class Level {
             }
 
             // Hitting a box which we have determined is going to stay
-            else if (bt.containsKey(np) && bt.get(np).getTransitions().contains(Box.Transition.STAY)) {
-                bt.get(p).getTransitions().add(Box.Transition.STAY);
+            else if (bt.isAnythingAt(np) && bt.getAt(np).getTransitions().contains(Box.Transition.STAY)) {
+                bt.getAt(p).getTransitions().add(Box.Transition.STAY);
                 pendingSet.remove(pending.poll());
             }
 
             // Goal of the correct color has been reached
-            else if (gt.containsKey(np) && gt.get(np).getObject().getColor().equals(b.getColor())) {
-                gt.get(np).getTransitions().add(Goal.Transition.DISAPPEAR);
-                bt.get(p).getTransitions().addAll(ImmutableList.of(Box.Transition.DISAPPEAR, Box.Transition.MOVE));
+            else if (gt.isAnythingAt(np) && gt.getAt(np).getObject().getColor().equals(b.getColor())) {
+                gt.getAt(np).getTransitions().add(Goal.Transition.DISAPPEAR);
+                bt.getAt(p).getTransitions().addAll(ImmutableList.of(Box.Transition.DISAPPEAR, Box.Transition.MOVE));
+                pendingSet.remove(pending.poll());
             }
 
             // Not hitting anything
             else {
-                bt.get(p).getTransitions().add(Box.Transition.MOVE);
+                bt.getAt(p).getTransitions().add(Box.Transition.MOVE);
                 pendingSet.remove(pending.poll());
             }
         }
-        return TransitionLevel.create(bt, gt, wt, dimensions);
+        return transitionLevel;
     }
 }

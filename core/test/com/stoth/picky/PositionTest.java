@@ -19,4 +19,13 @@ public class PositionTest {
         assertEquals(row, p.getRow());
         assertEquals(col, p.getCol());
     }
+
+    @Test
+    public void testMove() {
+        Position p = Position.create(5, 7);
+        assertEquals(Position.create(6, 7), p.move(Direction.DOWN));
+        assertEquals(Position.create(4, 7), p.move(Direction.UP));
+        assertEquals(Position.create(5, 8), p.move(Direction.RIGHT));
+        assertEquals(Position.create(5, 6), p.move(Direction.LEFT));
+    }
 }

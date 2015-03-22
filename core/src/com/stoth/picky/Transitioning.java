@@ -2,10 +2,11 @@ package com.stoth.picky;
 
 import com.google.common.base.Preconditions;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * An object which is transitioning.
+ * An object which is transitioning. This is mutable!
  *
  * @param <O> Object type.
  * @param <T> Transition type.
@@ -19,8 +20,8 @@ public final class Transitioning<O, T> {
         this.transitions = Preconditions.checkNotNull(transitions);
     }
 
-    public static <O, T> Transitioning create(O object, Set<T> transitions) {
-        return new Transitioning(object, transitions);
+    public static <O, T> Transitioning empty(O object, Class<T> transitionType) {
+        return new Transitioning(object, new HashSet<T>());
     }
 
     public O getObject() {

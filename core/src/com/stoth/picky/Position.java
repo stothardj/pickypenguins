@@ -36,13 +36,13 @@ public final class Position {
     public Position move(Direction dir) {
         switch (dir) {
             case LEFT:
-                return incRow(-1);
-            case RIGHT:
-                return incRow(1);
-            case UP:
                 return incCol(-1);
-            case DOWN:
+            case RIGHT:
                 return incCol(1);
+            case UP:
+                return incRow(-1);
+            case DOWN:
+                return incRow(1);
         }
         throw new IllegalArgumentException("Unexpected direction " + dir);
     }
