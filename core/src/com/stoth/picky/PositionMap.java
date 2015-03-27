@@ -1,6 +1,7 @@
 package com.stoth.picky;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -42,6 +43,10 @@ public final class PositionMap<T> {
 
     public ImmutableSet<Map.Entry<Position, T>> getAll() {
         return map.entrySet();
+    }
+
+    public FluentIterable<T> getValues() {
+        return FluentIterable.from(map.values());
     }
 
     public static class Builder<T> {

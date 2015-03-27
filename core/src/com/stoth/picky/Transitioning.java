@@ -1,7 +1,9 @@
 package com.stoth.picky;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,6 +24,15 @@ public final class Transitioning<O, T> {
 
     public static <O, T> Transitioning empty(O object, Class<T> transitionType) {
         return new Transitioning(object, new HashSet<T>());
+    }
+
+    public static <O, T> Function<Transitioning<O, T>, Set<T>> getTransistionsFn() {
+        return new Function<Transitioning<O, T>, Set<T>>() {
+            @Override
+            public Set<T> apply(Transitioning<O, T> input) {
+                return input.getTransitions();
+            }
+        };
     }
 
     public O getObject() {

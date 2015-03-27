@@ -1,6 +1,9 @@
 package com.stoth.picky;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+
+import java.util.Set;
 
 /**
  * The object moved towards the goals by the player.
@@ -10,6 +13,15 @@ public final class Box {
         STAY,
         MOVE,
         DISAPPEAR
+    }
+
+    public static Predicate<Set<Transition>> hasTransistionFn(final Transition t) {
+        return new Predicate<Set<Transition>>() {
+            @Override
+            public boolean apply(Set<Transition> input) {
+                return input.contains(t);
+            }
+        };
     }
 
     @Override

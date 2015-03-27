@@ -28,7 +28,6 @@ public final class Level {
         return walls;
     }
 
-
     public Dimensions getDimensions() {
         return dimensions;
     }
@@ -113,7 +112,7 @@ public final class Level {
         Queue<Position> pending = Lists.newLinkedList(boxes.getPositions());
         Set<Position> pendingSet = Sets.newHashSet(boxes.getPositions());
 
-        TransitionLevel transitionLevel = TransitionLevel.fromLevel(this);
+        TransitionLevel transitionLevel = TransitionLevel.fromLevel(this, dir);
         PositionMap<Transitioning<Box, Box.Transition>> bt = transitionLevel.getBoxes();
         PositionMap<Transitioning<Goal, Goal.Transition>> gt = transitionLevel.getGoals();
         
@@ -159,5 +158,53 @@ public final class Level {
             }
         }
         return transitionLevel;
+    }
+
+    private static PositionMap<Box> applyBoxTransition(TransitionLevel tl) {
+        PositionMap.Builder<Box> builder = new PositionMap.Builder<>();
+        for (Map.Entry<Position, Transitioning<Box, Box.Transition>> entry : tl.getBoxes().getAll()) {
+            Position p = entry.getKey();
+            Set<Box.Transition> transitions = entry.getValue().getTransitions();
+            Box oldBox = entry.getValue().getObject();
+            if (transitions.contains(Box.Transition.DISAPPEAR)) {
+                continue;
+            } else if (transitions.contains(Box.Transition.MOVE)) {
+                builder.putAt(p.move(tl.getDirection()), oldBox);
+            } else if (transitions.contains(Box.Transition.STAY)) {
+                builder.putAt(p, oldBox);
+            }
+        }
+        return builder.build();
+    }
+
+    private static PositionMap<Goal> applyGoalTransition(TransitionLevel tl) {
+        PositionMap.Builder<Goal> builder = new PositionMap.Builder<>();
+        for (Map.Entry<Position, Transitioning<Goal, Goal.Transition>> entry : tl.getGoals().getAll()) {
+            Position p = entry.getKey();
+            Set<Goal.Transition> transitions = entry.getValue().getTransitions();
+            Goal oldGoal = entry.getValue().getObject();
+            if (!transitions.contains(Goal.Transition.DISAPPEAR)) {
+                builder.putAt(p, oldGoal);
+            }
+        }
+        return builder.build();
+    }
+
+    private static PositionMap<Wall> applyWallTransition(TransitionLevel tl) {
+        PositionMap.Builder<Wall> builder = new PositionMap.Builder<>();
+        for (Map.Entry<Position, Transitioning<Wall, Wall.Transition>> entry : tl.getWalls().getAll()) {
+            Position p = entry.getKey();
+            Wall oldWall = entry.getValue().getObject();
+            builder.putAt(p, oldWall);
+        }
+        return builder.build();
+    }
+
+    public static Level fromTransitionLevel(TransitionLevel tl) {
+        return new Level(
+                applyBoxTransition(tl),
+                applyGoalTransition(tl),
+                applyWallTransition(tl),
+                tl.getDimensions());
     }
 }

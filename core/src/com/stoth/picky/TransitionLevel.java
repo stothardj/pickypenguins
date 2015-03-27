@@ -1,6 +1,6 @@
 package com.stoth.picky;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 
@@ -13,16 +13,19 @@ public final class TransitionLevel {
     private final PositionMap<Transitioning<Goal, Goal.Transition>> goals;
     private final PositionMap<Transitioning<Wall, Wall.Transition>> walls;
     private final Dimensions dimensions;
+    private final Direction direction;
 
-    private TransitionLevel(
+    public TransitionLevel(
             PositionMap<Transitioning<Box, Box.Transition>> boxes,
             PositionMap<Transitioning<Goal, Goal.Transition>> goals,
             PositionMap<Transitioning<Wall, Wall.Transition>> walls,
-            Dimensions dimensions) {
-        this.boxes = boxes;
-        this.goals = goals;
-        this.walls = walls;
-        this.dimensions = dimensions;
+            Dimensions dimensions,
+            Direction direction) {
+        this.boxes = checkNotNull(boxes);
+        this.goals = checkNotNull(goals);
+        this.walls = checkNotNull(walls);
+        this.dimensions = checkNotNull(dimensions);
+        this.direction = checkNotNull(direction);
     }
 
     public PositionMap<Transitioning<Box, Box.Transition>> getBoxes() {
@@ -41,7 +44,11 @@ public final class TransitionLevel {
         return dimensions;
     }
 
-    public static TransitionLevel fromLevel(Level level) {
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public static TransitionLevel fromLevel(Level level, Direction dir) {
         PositionMap.Builder<Transitioning<Box, Box.Transition>> boxBuilder = new PositionMap.Builder<>();
         PositionMap.Builder<Transitioning<Goal, Goal.Transition>> goalBuilder = new PositionMap.Builder<>();
         PositionMap.Builder<Transitioning<Wall, Wall.Transition>> wallBuilder = new PositionMap.Builder<>();
@@ -55,6 +62,16 @@ public final class TransitionLevel {
         for (Map.Entry<Position, Wall> entry : level.getWalls().getAll()) {
             wallBuilder.putAt(entry.getKey(), Transitioning.empty(entry.getValue(), Wall.Transition.class));
         }
-        return new TransitionLevel(boxBuilder.build(), goalBuilder.build(), wallBuilder.build(), level.getDimensions());
+        return new TransitionLevel(boxBuilder.build(), goalBuilder.build(), wallBuilder.build(), level.getDimensions(), dir);
+    }
+
+    public boolean isDoneTransitioning() {
+        return boxes.getValues()
+                .transform(Transitioning.<Box, Box.Transition>getTransistionsFn())
+                .allMatch(Box.hasTransistionFn(Box.Transition.STAY));
+    }
+
+    public Level applyTransitions() {
+        return Level.fromTransitionLevel(this);
     }
 }

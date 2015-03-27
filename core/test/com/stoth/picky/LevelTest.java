@@ -52,6 +52,18 @@ public class LevelTest {
     }
 
     @Test
+    public void testApplyTransitions_moves() {
+        Level level = new Level.Builder(Dimensions.create(5, 5))
+                .putBox(3, 2, Box.create(Color.RED))
+                .build();
+        Level newLevel = level.getTransitions(Direction.LEFT).applyTransitions();
+        Level expectedLevel = new Level.Builder(Dimensions.create(5, 5))
+                .putBox(3, 1, Box.create(Color.RED))
+                .build();
+        assertEquals(expectedLevel, newLevel);
+    }
+
+    @Test
     public void testGetTransitions_hitsWall() {
         Level level = new Level.Builder(Dimensions.create(5, 5))
                 .putBox(3, 2, Box.create(Color.RED))
@@ -64,6 +76,17 @@ public class LevelTest {
     }
 
     @Test
+    public void testApplyTransitions_hitsWall() {
+        Level level = new Level.Builder(Dimensions.create(5, 5))
+                .putBox(3, 2, Box.create(Color.RED))
+                .putWall(3, 1, Wall.create(Wall.Type.NORMAL))
+                .build();
+        Level newLevel = level.getTransitions(Direction.LEFT).applyTransitions();
+        Level expectedLevel = level;
+        assertEquals(expectedLevel, newLevel);
+    }
+
+    @Test
     public void testGetTransitions_hitsBorder() {
         Level level = new Level.Builder(Dimensions.create(5, 3))
                 .putBox(3, 2, Box.create(Color.RED))
@@ -72,6 +95,16 @@ public class LevelTest {
 
         Set<Box.Transition> actual = transitionLevel.getBoxes().getAt(3, 2).getTransitions();
         assertEquals(ImmutableSet.of(Box.Transition.STAY), actual);
+    }
+
+    @Test
+    public void testApplyTransitions_hitsBorder() {
+        Level level = new Level.Builder(Dimensions.create(5, 3))
+                .putBox(3, 2, Box.create(Color.RED))
+                .build();
+        Level newLevel = level.getTransitions(Direction.RIGHT).applyTransitions();
+        Level expectedLevel = level;
+        assertEquals(expectedLevel, newLevel);
     }
 
     @Test
@@ -87,6 +120,20 @@ public class LevelTest {
     }
 
     @Test
+    public void testApplyTransitions_hitBoxNoWall() {
+        Level level = new Level.Builder(Dimensions.create(10, 10))
+                .putBox(5, 5, Box.create(Color.BLUE))
+                .putBox(5, 6, Box.create(Color.RED))
+                .build();
+        Level newLevel = level.getTransitions(Direction.LEFT).applyTransitions();
+        Level expectedLevel = new Level.Builder(Dimensions.create(10, 10))
+                .putBox(5, 4, Box.create(Color.BLUE))
+                .putBox(5, 5, Box.create(Color.RED))
+                .build();
+        assertEquals(expectedLevel, newLevel);
+    }
+
+    @Test
     public void testGetTransitions_hitsBoxWithWall() {
         Level level = new Level.Builder(Dimensions.create(10, 10))
                 .putWall(5, 4, Wall.create(Wall.Type.NORMAL))
@@ -97,6 +144,18 @@ public class LevelTest {
 
         Set<Box.Transition> actual = transitionLevel.getBoxes().getAt(5, 6).getTransitions();
         assertEquals(ImmutableSet.of(Box.Transition.STAY), actual);
+    }
+
+    @Test
+    public void testApplyTransitions_hitBoxWithWall() {
+        Level level = new Level.Builder(Dimensions.create(10, 10))
+                .putWall(5, 4, Wall.create(Wall.Type.NORMAL))
+                .putBox(5, 5, Box.create(Color.BLUE))
+                .putBox(5, 6, Box.create(Color.RED))
+                .build();
+        Level newLevel = level.getTransitions(Direction.LEFT).applyTransitions();
+        Level expectedLevel = level;
+        assertEquals(expectedLevel, newLevel);
     }
 
     @Test
@@ -115,6 +174,17 @@ public class LevelTest {
     }
 
     @Test
+    public void testApplyTransitions_reachesGoalSameColor() {
+        Level level = new Level.Builder(Dimensions.create(10, 10))
+                .putGoal(5, 5, Goal.create(Color.BLUE))
+                .putBox(5, 4, Box.create(Color.BLUE))
+                .build();
+        Level newLevel = level.getTransitions(Direction.RIGHT).applyTransitions();
+        Level expectedLevel = new Level.Builder(Dimensions.create(10, 10)).build();
+        assertEquals(expectedLevel, newLevel);
+    }
+
+    @Test
     public void testGetTransitions_reachesGoalDifferentColor() {
         Level level = new Level.Builder(Dimensions.create(10, 10))
                 .putGoal(5, 5, Goal.create(Color.BLUE))
@@ -127,5 +197,19 @@ public class LevelTest {
 
         Set<Goal.Transition> actualGoal = transitionLevel.getGoals().getAt(5, 5).getTransitions();
         assertEquals(ImmutableSet.of(), actualGoal);
+    }
+
+    @Test
+    public void testApplyTransitions_reachesGoalDifferentColor() {
+        Level level = new Level.Builder(Dimensions.create(10, 10))
+                .putGoal(5, 5, Goal.create(Color.BLUE))
+                .putBox(5, 4, Box.create(Color.GREEN))
+                .build();
+        Level newLevel = level.getTransitions(Direction.RIGHT).applyTransitions();
+        Level expectedLevel = new Level.Builder(Dimensions.create(10, 10))
+                .putGoal(5, 5, Goal.create(Color.BLUE))
+                .putBox(5, 5, Box.create(Color.GREEN))
+                .build();
+        assertEquals(expectedLevel, newLevel);
     }
 }
