@@ -40,9 +40,9 @@ public final class Position {
             case RIGHT:
                 return incCol(1);
             case UP:
-                return incRow(-1);
-            case DOWN:
                 return incRow(1);
+            case DOWN:
+                return incRow(-1);
         }
         throw new IllegalArgumentException("Unexpected direction " + dir);
     }
