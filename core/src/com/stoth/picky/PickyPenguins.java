@@ -26,12 +26,8 @@ public class PickyPenguins extends ApplicationAdapter {
 		batch = new SpriteBatch();
         resources = Resources.load();
         levelRenderer = new LevelRenderer(batch, resources);
-        Level level = new Level.Builder(Dimensions.create(10, 10))
-                .putBox(5, 3, Box.create(Color.RED))
-                .putBox(7, 2, Box.create(Color.BLUE))
-                .putWall(1, 0, Wall.create(Wall.Type.NORMAL))
-                .putGoal(3, 8, Goal.create(Color.GREEN))
-                .build();
+        Level level = new LevelLoader().loadLevel(Gdx.files.internal("level.json")).level;
+
         game = Game.create(level);
         camera = new OrthographicCamera();
         viewport = new FitViewport(1000, 1000, camera);
