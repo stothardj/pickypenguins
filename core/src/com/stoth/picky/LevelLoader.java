@@ -64,20 +64,7 @@ public final class LevelLoader {
         ImmutableList.Builder<Direction> solution =
                 ImmutableList.<Direction>builder();
         for (String dir : top.get("solution").asStringArray()) {
-            switch (dir) {
-                case "UP":
-                    solution.add(Direction.UP);
-                    break;
-                case "DOWN":
-                    solution.add(Direction.DOWN);
-                    break;
-                case "LEFT":
-                    solution.add(Direction.LEFT);
-                    break;
-                case "RIGHT":
-                    solution.add(Direction.RIGHT);
-                    break;
-            }
+            solution.add(Direction.valueOf(dir.toUpperCase()));
         }
         return new LoadedLevel(levelBuilder.build(), solution.build());
     }
