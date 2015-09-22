@@ -30,7 +30,10 @@ public class PickyPenguins extends ApplicationAdapter {
 
         game = Game.create(level);
         camera = new OrthographicCamera();
-        viewport = new FitViewport(1000, 1000, camera);
+        viewport = new FitViewport(
+                level.getDimensions().getnCols() * 100,
+                level.getDimensions().getnRows() * 100,
+                camera);
         viewport.apply();
         camera.position.set(camera.viewportWidth/2, camera.viewportHeight/2, 0);
         Gdx.input.setInputProcessor(InputReceiver.create(game));
@@ -44,9 +47,9 @@ public class PickyPenguins extends ApplicationAdapter {
         batch.setProjectionMatrix(camera.combined);
 		batch.begin();
         levelRenderer.renderLevel(game.getLevel());
+        batch.end();
         game.processEvents();
         game.completeTransition();
-		batch.end();
 	}
 
     @Override

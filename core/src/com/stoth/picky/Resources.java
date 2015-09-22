@@ -12,6 +12,7 @@ public final class Resources {
     private final Map<Color, Texture> boxes;
     private final Map<Color, Texture> goals;
     private final Texture wall;
+    private final Texture background;
 
     private Resources() {
         boxes = ImmutableMap.of(
@@ -25,6 +26,7 @@ public final class Resources {
                 Color.BLUE, new Texture("fish-blue.png")
         );
         wall = new Texture("iceblock.png");
+        background = new Texture("background.png");
     }
 
     public static Resources load() {
@@ -42,4 +44,6 @@ public final class Resources {
     public Texture getWallImage() {
         return wall;
     }
+
+    public Texture getBackgroundImage() { return background; }
 }

@@ -17,6 +17,10 @@ public final class LevelRenderer {
     }
 
     public void renderLevel(Level level) {
+        batch.draw(
+                resources.getBackgroundImage(), 0, 0,
+                level.getDimensions().getnCols() * 100,
+                level.getDimensions().getnRows() * 100);
         for (Map.Entry<Position, Box> entry : level.getBoxes().getAll()) {
             Position p = entry.getKey();
             batch.draw(resources.getBoxImage(entry.getValue().getColor()), p.getCol() * 100, p.getRow() * 100, 100, 100);
